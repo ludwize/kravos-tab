@@ -1,12 +1,12 @@
 shot 01-start
-not found: Pusti
+not found: Glasno
 shot 02-playing
-not found: Pauza
-tapped Detalji
+not found: Detalji
 shot 03-details
 not found: Sve funkcije nota (3, b7, prolazne…)
+not found: Sve funkcije nota
 shot 04-all-functions
-tapped Detalji
-tapped Podešavanja
+not found: Detalji
+not found: Podešavanja
 shot 05-settings
 shot 06-landscape
