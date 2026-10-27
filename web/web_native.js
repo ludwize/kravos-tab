@@ -1,7 +1,7 @@
 // Web stand-in for the Android bridge (window.KravosNative), so the same page runs at tab.kravos.net.
 // Google sign-in with Google Identity Services (token flow, drive.readonly), Drive REST from the browser.
 (()=>{
-const CLIENT_ID='__GOOGLE_WEB_CLIENT_ID__';
+const CLIENT_ID='653391978378-hags8j8fc7hll1jjnpl9pr1of8839e0e.apps.googleusercontent.com';
 const SCOPE='https://www.googleapis.com/auth/drive.readonly';
 const FOLDER='Kravos Tab',EXT=['gp','gpx','gp5','gp4','gp3','xml','musicxml','mxl'];
 const API='https://www.googleapis.com/drive/v3';
