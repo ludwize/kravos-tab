@@ -25,6 +25,7 @@ function initGis(){
 }
 function needToken(then){
   if(valid())return then();
+  if(CLIENT_ID.indexOf('apps.googleusercontent.com')<0){KT().onError&&KT().onError('Web prijava još nije podešena: nedostaje Google Client ID.');return}
   if(!initGis()){KT().onError&&KT().onError('Google prijava se još učitava, pokušaj ponovo.');return}
   afterToken=then;tokenClient.requestAccessToken({prompt:ls.get('kt-was-connected')?'':'consent'});
 }
