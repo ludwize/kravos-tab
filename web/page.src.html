@@ -78,10 +78,21 @@ footer.transport{border-top:1px solid var(--line);background:var(--bg);padding-b
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);z-index:20}
 #drop{position:fixed;inset:0;background:color-mix(in srgb,var(--accent) 18%,transparent);border:3px dashed var(--accent);display:grid;place-items:center;font:700 20px var(--f-display);z-index:30;pointer-events:none}
 @media (max-width:700px){
-  #scroll{min-height:55vh}
+  .brand{display:none}
+  header.top{gap:8px}
+  #songSel{max-width:none}
   .speed input{width:84px}
   .sp{display:none}
-  #songSel{max-width:none;flex-basis:100%}
+  footer.transport{gap:8px 10px}
+}
+@media (max-height:520px){
+  .brand{display:none}
+  header.top{padding-block:6px}
+  .hint{padding-block:5px;min-height:0}
+  footer.transport{padding-block:6px calc(6px + env(safe-area-inset-bottom,0px));gap:6px 10px}
+  .play{width:40px;height:40px}
+  .round{width:32px;height:32px}
+  .levels button{padding:6px 12px}
 }
 </style>
 

@@ -33,10 +33,10 @@ PY
 }
 
 shot 01-start
-tap_text "Pusti"; sleep 6; shot 02-playing
-tap_text "Pauza"; sleep 1
+tap_text "Glasno"; adb shell input keyevent KEYCODE_SPACE; sleep 6; shot 02-playing
+adb shell input keyevent KEYCODE_SPACE; sleep 1
 tap_text "Detalji"; sleep 2; shot 03-details
-tap_text "Sve funkcije nota (3, b7, prolazne…)"; sleep 5; shot 04-all-functions
+tap_text "Sve funkcije nota (3, b7, prolazne…)"; tap_text "Sve funkcije nota"; sleep 5; shot 04-all-functions
 tap_text "Detalji"; sleep 1
 tap_text "Podešavanja"; sleep 2; shot 05-settings
 adb shell input keyevent KEYCODE_BACK; sleep 1
