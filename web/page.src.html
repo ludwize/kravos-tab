@@ -1,0 +1,452 @@
+<title data-kt>Kravos Tab</title>
+<meta data-kt name="claude:viewport-fit-sides" content="cover">
+<link data-kt rel="preconnect" href="https://fonts.googleapis.com">
+<link data-kt rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link data-kt rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Unbounded:wght@500;700&display=swap">
+<style data-kt>
+/* Layout: one column — song shelf on top, a single hint line, the tab sheet, and a transport strip with the level switch. */
+:root{
+  --bg:#EEF0EE; --sheet:#FCFCFB; --ink:#15191F; --muted:#5E6670; --line:#D5D9D6; --chip:#E3E6E3;
+  --accent:#C8102E; --accent-ink:#FFFFFF; --hint:#15191F; --hint-ink:#F3F4F2;
+  --f-display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101317; --sheet:#171B21; --ink:#E9ECEF; --muted:#97A0AA; --line:#2A3038; --chip:#222830;
+  --accent:#FF4D5E; --accent-ink:#15050A; --hint:#22282F; --hint-ink:#E9ECEF; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101317; --sheet:#171B21; --ink:#E9ECEF; --muted:#97A0AA; --line:#2A3038; --chip:#222830;
+  --accent:#FF4D5E; --accent-ink:#15050A; --hint:#22282F; --hint-ink:#E9ECEF; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);display:flex;flex-direction:column;overflow:hidden}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding-block:12px;border-bottom:1px solid var(--line)}
+.brand{font:700 15px/1 var(--f-display);letter-spacing:.02em;white-space:nowrap}
+.brand i{font-style:normal;color:var(--accent)}
+.shelf{display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap}
+#songSel{flex:1;min-width:0;max-width:420px;border:1px solid var(--line);background:var(--sheet);border-radius:10px;padding:8px 10px;font:500 14px var(--f-body)}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:7px 14px;cursor:pointer;font-size:14px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.warn{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.quiet{border-color:transparent;background:none;color:var(--muted);padding-inline:8px}
+.btn svg{width:15px;height:15px;flex:none}
+input[type=file]{display:none}
+
+.hint{display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;padding-block:10px;background:var(--hint);color:var(--hint-ink);min-height:44px}
+.hint b{font:500 14px var(--f-display);letter-spacing:.01em}
+.hint .prog{font:700 14px var(--f-mono)}
+.hint .tip{font-size:14.5px;opacity:.9}
+.banner{padding-block:7px;font-size:13.5px;border-bottom:1px solid var(--line);background:color-mix(in srgb,#C98A00 22%,var(--bg))}
+.mono{font-family:var(--f-mono);font-weight:700}
+
+#scroll{flex:1;min-height:0;overflow:auto;background:var(--sheet);position:relative}
+#at{min-height:200px}
+.at-cursor-bar{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.at-cursor-beat{background:var(--accent);width:3px}
+.at-selection div{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.at-highlight *{fill:var(--accent);stroke:var(--accent)}
+#loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);pointer-events:none}
+
+footer.transport{border-top:1px solid var(--line);background:var(--bg);padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.play{width:50px;height:50px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;cursor:pointer;flex:none}
+.play svg{width:20px;height:20px}
+.round{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--sheet);display:grid;place-items:center;cursor:pointer;flex:none}
+.round svg{width:15px;height:15px}
+.time{font:500 13px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.levels{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--sheet)}
+.levels button{border:0;background:none;padding:8px 16px;cursor:pointer;font-weight:600;font-size:14px}
+.levels button + button{border-left:1px solid var(--line)}
+.levels button.on{background:var(--ink);color:var(--bg)}
+.speed{display:flex;align-items:center;gap:8px;font:500 13px var(--f-mono);font-variant-numeric:tabular-nums}
+.speed input{width:120px;accent-color:var(--accent)}
+.sp{flex:1}
+.grpl{display:flex;align-items:center;gap:8px}
+.lbl{font-size:13px;color:var(--muted)}
+.more{position:relative}
+.more summary{list-style:none}
+.more summary::-webkit-details-marker{display:none}
+.more[open] summary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.more .menu{position:absolute;bottom:calc(100% + 8px);left:0;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:260px;max-width:calc(100vw - 32px);box-shadow:0 10px 30px rgb(0 0 0 / .18);z-index:10}
+.more .menu label{display:flex;gap:9px;align-items:center;font-size:14px;cursor:pointer}
+.more .menu input{accent-color:var(--accent);width:16px;height:16px;flex:none}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);z-index:20}
+#drop{position:fixed;inset:0;background:color-mix(in srgb,var(--accent) 18%,transparent);border:3px dashed var(--accent);display:grid;place-items:center;font:700 20px var(--f-display);z-index:30;pointer-events:none}
+@media (max-width:700px){
+  #scroll{min-height:55vh}
+  .speed input{width:84px}
+  .sp{display:none}
+  #songSel{max-width:none;flex-basis:100%}
+}
+</style>
+
+<header data-kt class="top gut">
+  <span class="brand">KRAVOS <i>TAB</i></span>
+  <div class="shelf">
+    <select id="songSel" aria-label="Моје песме"></select>
+    <label class="btn" for="fGp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Додај песму</label>
+    <input type="file" id="fGp" accept=".gp,.gpx,.gp5,.gp4,.gp3,.xml,.musicxml,.mxl">
+    <button class="btn quiet" id="delBtn" hidden>Уклони</button>
+    <button class="btn" id="saveBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg>Сачувај HTML</button>
+  </div>
+</header>
+<div data-kt class="hint gut" id="hint"><b id="hSec">—</b><span class="prog" id="hProg"></span><span class="tip" id="hTip"></span></div>
+<div data-kt class="banner gut" id="tuneBanner" hidden></div>
+<div data-kt id="scroll"><div id="at"></div><div id="loading">Учитавам…</div></div>
+<footer data-kt class="transport gut">
+  <button class="play" id="playBtn" aria-label="Пусти"><svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M7 4l13 8-13 8z"/></svg></button>
+  <button class="round" id="stopBtn" aria-label="На почетак"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
+  <span class="time" id="time">0:00</span>
+  <div class="grpl"><span class="lbl">Бас</span><div class="levels" id="bassVol" role="radiogroup" aria-label="Јачина баса">
+    <button data-v="1" role="radio" class="on">Гласно</button>
+    <button data-v="0.35" role="radio">Тихо</button>
+    <button data-v="0" role="radio">Без</button>
+  </div></div>
+  <details class="more" id="more"><summary class="btn">Детаљи</summary>
+    <div class="menu">
+      <label><input type="checkbox" id="optChords" checked>Акорди изнад таба</label>
+      <label><input type="checkbox" id="optRoot" checked>Ознаке R и 5 на нотама</label>
+      <label><input type="checkbox" id="optAll">Све функције нота (3, b7, пролазне…)</label>
+      <label><input type="checkbox" id="optHint" checked>Савети по деловима песме</label>
+      <label><input type="checkbox" id="optStd">Ноте изнад таба</label>
+    </div>
+  </details>
+  <span class="sp"></span>
+  <div class="speed"><label for="speed">Темпо</label><input type="range" id="speed" min="40" max="120" step="5" value="100"><span id="speedVal">100%</span></div>
+  <button class="btn" id="loopBtn">Понављај део</button>
+</footer>
+<div data-kt id="toast" hidden></div>
+<div data-kt id="drop" hidden>Пусти .gp фајл овде</div>
+
+<script data-kt src="https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.8.4/dist/alphaTab.min.js"></script>
+<script data-kt>
+const BRAVURA_B64="__BRAVURA__";
+const SF3_B64="__SF3__";
+</script>
+<script data-kt>
+__LESSONS__
+</script>
+<script data-kt>
+(()=>{
+"use strict";
+const PRISTINE=[...document.querySelectorAll("[data-kt]")].map(e=>e.outerHTML).join("\n");
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const AT=window.alphaTab;
+const NAMES_S=['C','C#','D','D#','E','F','F#','G','G#','A','B','H'],NAMES_F=['C','Db','D','Eb','E','F','Gb','G','Ab','A','B','H'];
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function toast(m,ms=3200){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,ms)}
+function b64bytes(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
+function bytesB64(u){let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+const fmt=ms=>{ms=Math.max(0,ms||0);const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const OPT={chords:true,root:true,all:false,hint:true,std:false,bass:1};
+
+const S={src:null,score:null,track:0,key:{tonic:4,minor:true,flat:false},info:new Map(),sections:[],secOf:[],
+  loop:false,loopSec:null,songId:null,title:''};
+
+// ---------- alphaTab ----------
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function colorize(st){
+  const C=c=>AT.model.Color.fromJson(c),r=st.display.resources;
+  r.mainGlyphColor=C(css('--ink'));r.secondaryGlyphColor=C(css('--muted'));r.scoreInfoColor=C(css('--ink'));
+  r.staffLineColor=C(css('--line'));r.barSeparatorColor=C(css('--muted'));r.barNumberColor=C(css('--muted'));
+  try{r.effectFont=AT.model.Font.withFamilyList(['JetBrains Mono','Menlo','monospace'],12,AT.model.FontStyle.Plain,AT.model.FontWeight.Bold)}catch(e){}
+}
+const st=new AT.Settings();
+st.core.fontDirectory=null;
+st.core.smuflFontSources=new Map([[AT.FontFileFormat.Woff2,'data:font/woff2;base64,'+BRAVURA_B64]]);
+st.display.staveProfile=AT.StaveProfile.Tab;
+st.display.layoutMode=AT.LayoutMode.Page;
+st.display.scale=matchMedia('(max-width:700px)').matches?0.85:1.05;
+st.display.padding=[18,22,18,22];
+st.notation.rhythmMode=AT.TabRhythmMode.ShowWithBars;
+st.player.enablePlayer=true;st.player.playerMode=AT.PlayerMode.EnabledSynthesizer;
+st.player.outputMode=AT.PlayerOutputMode.WebAudioScriptProcessor;
+st.player.enableCursor=true;st.player.enableAnimatedBeatCursor=true;st.player.enableUserInteraction=true;
+st.player.scrollElement=$('#scroll');st.player.scrollMode=AT.ScrollMode.Continuous;st.player.scrollOffsetY=-40;
+st.player.soundFont=null;
+colorize(st);
+const api=new AT.AlphaTabApi($('#at'),st);
+window.ktApi=api;
+try{api.loadSoundFont(b64bytes(SF3_B64),false)}catch(e){console.error(e)}
+api.renderFinished.on(()=>{$('#loading').hidden=true;setTimeout(()=>{applyOpts();if(S.loop&&S.loopSec)highlight(S.loopSec)},80)});
+api.error.on(e=>{console.error(e)});
+api.playerReady.on(applyOpts);
+api.playerStateChanged.on(a=>{const p=a.state===1;
+  $('#playIcon').innerHTML=p?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>':'<path d="M7 4l13 8-13 8z"/>';
+  $('#playBtn').setAttribute('aria-label',p?'Пауза':'Пусти')});
+api.playerPositionChanged.on(a=>{$('#time').textContent=fmt(a.currentTime)});
+api.playedBeatChanged.on(b=>{if(b)showSection(b.voice.bar.masterBar.index)});
+api.beatMouseDown.on(b=>{if(b)showSection(b.voice.bar.masterBar.index)});
+// napomena: api.midiLoaded se namerno ne koristi (bag u alphaTab 1.8.4)
+
+function applyOpts(){
+  try{
+    api.playbackSpeed=+$('#speed').value/100;api.isLooping=S.loop;api.metronomeVolume=0;
+    if(S.score){const t=S.score.tracks[S.track],v=OPT.bass;
+      api.changeTrackMute([t],v===0);if(v>0)api.changeTrackVolume([t],v)}
+  }catch(e){console.warn(e)}
+}
+
+// ---------- key & harmony ----------
+const KS_MAJ=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88],KS_MIN=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+function corr(a,b){const ma=a.reduce((x,y)=>x+y)/12,mb=b.reduce((x,y)=>x+y)/12;let n=0,da=0,db=0;for(let i=0;i<12;i++){n+=(a[i]-ma)*(b[i]-mb);da+=(a[i]-ma)**2;db+=(b[i]-mb)**2}return n/Math.sqrt(da*db||1)}
+function detectKey(score){
+  const h=new Array(12).fill(0);
+  for(const t of score.tracks){if(t.isPercussion)continue;for(const s of t.staves)for(const bar of s.bars)for(const v of bar.voices)for(const b of v.beats)for(const n of b.notes)if(!n.isDead)h[n.realValue%12]+=b.playbackDuration||1}
+  if(h.every(x=>!x))return {tonic:4,minor:true,flat:false};
+  const ks=score.masterBars[0].keySignature,kt=score.masterBars[0].keySignatureType,sigMaj=((ks*7)%12+12)%12,ft=kt===1?(sigMaj+9)%12:sigMaj;
+  let best=null;
+  for(let t=0;t<12;t++)for(const minor of [false,true]){const p=minor?KS_MIN:KS_MAJ;let c=corr(h,p.map((_,i)=>p[(i-t+12)%12]));if((ks!==0||kt===1)&&t===ft&&minor===(kt===1))c+=.08;if(!best||c>best.c)best={c,tonic:t,minor}}
+  const maj=best.minor?(best.tonic+3)%12:best.tonic;
+  return {tonic:best.tonic,minor:best.minor,flat:[5,10,3,8,1].includes(maj)||ks<0};
+}
+const nn=pc=>(S.key.flat?NAMES_F:NAMES_S)[((pc%12)+12)%12];
+const scalePcs=()=>(S.key.minor?[0,2,3,5,7,8,10]:[0,2,4,5,7,9,11]).map(s=>(S.key.tonic+s)%12);
+const isBass=t=>{if(t.isPercussion)return false;const tu=t.staves[0]&&t.staves[0].tuning||[],p=t.playbackInfo.program;return (p>=32&&p<=39)||/bass|bas\b|бас|harris/i.test(t.name)||(tu.length>=4&&tu.length<=6&&Math.min(...tu)<36)};
+function harmonyTracks(score,ex){const c=score.tracks.filter(t=>t.index!==ex&&!t.isPercussion&&!isBass(t));const r=c.filter(t=>/rhythm|ritam|ритам|rhy|chord/i.test(t.name));return r.length?r:c}
+function segsOf(tracks){return tracks.map(t=>{const a=[];for(const s of t.staves){if(s.isPercussion)continue;for(const bar of s.bars)for(const v of bar.voices)for(const b of v.beats){const ps=b.notes.filter(n=>!n.isDead).map(n=>n.realValue);if(!ps.length)continue;a.push({s:b.absolutePlaybackStart,e:b.absolutePlaybackStart+b.playbackDuration,low:Math.min(...ps),pcs:[...new Set(ps.map(p=>p%12))]})}}return a.sort((x,y)=>x.s-y.s)})}
+function at(arr,t){let lo=0,hi=arr.length-1,r=-1;while(lo<=hi){const m=(lo+hi)>>1;if(arr[m].s<=t){r=m;lo=m+1}else hi=m-1}return r>=0&&arr[r].e>t?arr[r]:null}
+function bestRoot(g,bpc){let best=g.low%12,bs=-1;for(const r of g.pcs){const has=i=>g.pcs.includes((r+i)%12);const sc=(has(7)?3:0)+((has(3)||has(4))?2:0)+(r===g.low%12?1:0)+(r===bpc?1.5:0)-(has(1)?1:0)-(has(6)&&!has(7)?1:0);if(sc>bs){bs=sc;best=r}}return best}
+function mkChord(root,pcs){
+  const has=i=>pcs.includes((root+i)%12),inS=i=>scalePcs().includes((root+i)%12);
+  let q=has(4)?'':has(3)?'m':null;const explicit=q!==null;if(q===null)q=inS(4)?'':inS(3)?'m':'';
+  const power=!explicit&&pcs.length<=2&&pcs.every(p=>p===root||p===(root+7)%12);
+  return {root,name:nn(root)+(power||q!=='m'?'':'m')};
+}
+function analyse(){
+  const score=S.score;S.info=new Map();S.key=detectKey(score);
+  const segs=segsOf(harmonyTracks(score,S.track));let last=null,lastT=-1e9;
+  for(const bar of score.tracks[S.track].staves[0].bars){
+    const hist=new Map();for(const v of bar.voices)for(const b of v.beats)for(const n of b.notes)if(!n.isDead)hist.set(n.realValue%12,(hist.get(n.realValue%12)||0)+b.playbackDuration);
+    const dom=[...hist.entries()].sort((a,b)=>b[1]-a[1])[0];
+    for(const v of bar.voices)for(const b of v.beats){
+      const notes=b.notes.filter(n=>!n.isDead);if(!notes.length)continue;
+      const t=b.absolutePlaybackStart+1,bpc=Math.min(...notes.map(n=>n.realValue))%12;let chordal=null,single=null;
+      for(const arr of segs){const g=at(arr,t);if(!g)continue;if(g.pcs.length>=2){if(!chordal||g.low<chordal.low)chordal=g}else if(!single||g.low<single.low)single=g}
+      let chord;
+      if(chordal){chord=mkChord(bestRoot(chordal,bpc),chordal.pcs);last=chord;lastT=t}
+      else if(single&&single.low%12===bpc)chord=mkChord(bpc,[bpc]);
+      else if(last&&t-lastT<bar.masterBar.calculateDuration())chord=last;
+      else{const r=single?single.low%12:dom[0];chord=mkChord(r,[r]);last=chord;lastT=t}
+      S.info.set(b,{chord,notes});
+    }
+  }
+  S.sections=[];S.secOf=[];let cur=null;
+  score.masterBars.forEach((m,i)=>{if(i===0||m.section){const name=m.section?(m.section.text||''):'';cur={name,label:srLabel(name)||'Почетак',kind:kindOf(name),start:i,end:i};S.sections.push(cur)}cur.end=i;S.secOf[i]=cur});
+}
+const WORDS=[[/pre-?chorus/i,'Предрефрен'],[/chorus/i,'Рефрен'],[/verse/i,'Строфа'],[/intro/i,'Увод'],[/bridge/i,'Бриџ'],[/guitar solo/i,'Соло'],[/solo/i,'Соло'],[/outro/i,'Одјава'],[/interlude/i,'Међуигра'],[/ending/i,'Крај'],[/riff/i,'Риф'],[/break/i,'Брејк']];
+function srLabel(s){if(!s)return '';let o=s.trim();if(/outro/i.test(o)&&/chorus/i.test(o))return 'Рефрен (одјава)';for(const [re,w] of WORDS)o=o.replace(re,w);return o}
+function kindOf(s){s=(s||'').toLowerCase();if(/chorus|рефрен/.test(s))return 'chorus';if(/verse|строф/.test(s))return 'verse';if(/intro|увод/.test(s))return 'intro';if(/bridge|бриџ|interlude|break/.test(s))return 'bridge';if(/solo|соло/.test(s))return 'solo';if(/outro|ending|одјав|крај/.test(s))return 'outro';return null}
+function progression(sec){
+  const runs=[],out=[];
+  for(let i=sec.start;i<=sec.end;i++)for(const b of S.score.tracks[S.track].staves[0].bars[i].voices[0].beats){const inf=S.info.get(b);if(!inf)continue;const r=runs[runs.length-1];if(r&&r.c.root===inf.chord.root)r.d+=b.playbackDuration;else runs.push({c:inf.chord,d:b.playbackDuration})}
+  for(const r of runs)if(r.d>=950&&(!out.length||out[out.length-1].root!==r.c.root))out.push(r.c);
+  for(let L=2;L<=out.length/2;L++)if(out.slice(L,2*L).every((c,i)=>c.root===out[i].root))return out.slice(0,L);
+  return out.slice(0,6);
+}
+
+// ---------- labels: chord names + R / 5 ----------
+const ORIG=new WeakMap(),IV=['R','b2','2','b3','3','4','b5','5','b6','6','b7','7'];
+function applyLabels(){
+  const staff=S.score.tracks[S.track].staves[0];let prev=null,cid=0;
+  for(const bar of staff.bars)for(const v of bar.voices)for(const b of v.beats){
+    const inf=S.info.get(b);if(!inf||!b.notes.length)continue;
+    if(!ORIG.has(b))ORIG.set(b,{text:b.text,chordId:b.chordId});
+    const o=ORIG.get(b);b.text=o.text;b.chordId=o.chordId;
+    const ivs=inf.notes.map(n=>(n.realValue%12-inf.chord.root+12)%12);
+    if(OPT.all)b.text=ivs.map(i=>IV[i]).join('·');else if(OPT.root)b.text=ivs.map(i=>i===0?'R':i===7?'5':'').filter(Boolean).join('·');
+    if(OPT.chords&&!o.chordId&&(!prev||prev.name!==inf.chord.name)){const id='kt'+(cid++),c=new AT.model.Chord();c.name=inf.chord.name;c.showDiagram=false;c.showFingering=false;c.showName=true;staff.addChord(id,c);b.chordId=id}
+    prev=inf.chord;
+  }
+}
+function relabel(){if(!S.score)return;applyLabels();api.render()}
+
+// ---------- hint line ----------
+let curSec=null;
+function showSection(mbi){
+  const sec=S.secOf[mbi];if(!sec||sec===curSec)return;curSec=sec;
+  const prog=progression(sec).map(c=>c.name).join(' – ');
+  const L=BUILTIN_LESSONS[S.title.trim().toLowerCase()];
+  const tip=(L&&L[sec.kind])||'';
+  $('#hSec').textContent=sec.label;$('#hProg').textContent=prog;$('#hTip').textContent=tip;
+}
+
+// ---------- build & render ----------
+function build(){
+  if(!S.src)return;
+  api.stop();
+  let score;
+  try{score=S.src.kind==='tex'?(()=>{const i=new AT.importer.AlphaTexImporter();i.initFromString(S.src.data,api.settings);return i.readScore()})():AT.importer.ScoreLoader.loadScoreFromBytes(S.src.data,api.settings)}
+  catch(e){console.error(e);toast('Фајл није могуће прочитати. Подржани су Guitar Pro и MusicXML.',5000);return}
+  S.score=score;S.title=score.title||'';
+  const bi=score.tracks.findIndex(isBass);S.track=bi<0?0:bi;
+  analyse();
+  applyLabels();
+  S.loop=false;S.loopSec=null;$('#loopBtn').classList.remove('on');
+  tuningBanner();curSec=null;showSection(0);
+  $('#loading').hidden=false;api.renderScore(score,[S.track]);
+}
+function tuningBanner(){
+  const tu=S.score.tracks[S.track].staves[0].tuning,el=$('#tuneBanner');
+  const std=[[43,38,33,28],[43,38,33,28,23],[48,43,38,33,28,23]].some(s=>s.length===tu.length&&s.every((p,i)=>p===tu[i]));
+  if(!tu.length||std){el.hidden=true;return}
+  el.innerHTML='Пази на штим: <span class="mono">'+[...tu].reverse().map(nn).join(' ')+'</span>';el.hidden=false;
+}
+function openSrc(src,id){
+  S.src=src;S.songId=id||null;
+  if(id)store.set('kt-last',id);
+  $('#delBtn').hidden=!id;
+  build();
+}
+
+// ---------- library (saved in the artifact) ----------
+const LIB={db:null,assets:null,songs:[],cache:new Map(),first:true};
+function renderShelf(){
+  const sel=$('#songSel');
+  const opts=LIB.songs.map(s=>`<option value="${s.id}">${esc(s.title)}${s.artist?' · '+esc(s.artist):''}</option>`);
+  if(!S.songId)opts.unshift('<option value="">Вежба R–5–8 (пример)</option>');
+  sel.innerHTML=opts.join('');sel.value=S.songId||'';
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function openSong(id){
+  const s=LIB.songs.find(x=>x.id===id);if(!s)return;
+  try{
+    let data=LIB.cache.get(s.asset);
+    if(!data&&s.b64){data=b64bytes(s.b64);LIB.cache.set(s.asset,data)}
+    if(!data){$('#loading').hidden=false;const r=await fetch('/_blob/'+s.asset);if(!r.ok)throw new Error(r.status);data=b64bytes((await r.text()).trim());LIB.cache.set(s.asset,data)}
+    openSrc({kind:'bytes',data},id);renderShelf();
+  }catch(e){console.error(e);$('#loading').hidden=true;toast('Песма није учитана. Пробај поново или је додај опет.',4500)}
+}
+async function addFile(f){
+  const data=new Uint8Array(await f.arrayBuffer());
+  let score;try{score=AT.importer.ScoreLoader.loadScoreFromBytes(data,api.settings)}catch(e){toast('Фајл није могуће прочитати. Подржани су Guitar Pro (.gp, .gpx, .gp5, .gp4, .gp3) и MusicXML.',5000);return}
+  const title=(score.title||f.name.replace(/\.[^.]+$/,'')).trim(),artist=(score.artist||'').trim();
+  if(!LIB.db||!LIB.assets){
+    const id='mem-'+Date.now(),asset=id;LIB.cache.set(asset,data);
+    LIB.songs=LIB.songs.concat([{id,title,artist,asset,b64:bytesB64(data),mem:true}]).sort((a,b)=>a.title.localeCompare(b.title));
+    openSrc({kind:'bytes',data},id);renderShelf();
+    toast(LIB.standalone?'Додато. Притисни „Сачувај HTML“ да остане у фајлу.':'Песма је отворена, али у овом прегледу не може трајно да се сачува.',4500);return}
+  try{
+    toast('Чувам „'+title+'“…');
+    const up=await LIB.assets.upload(new Blob([bytesB64(data)],{type:'text/plain'}),{type:'text/plain'});
+    const id=(title+'-'+artist).toLowerCase().replace(/[^a-z0-9а-ш]+/gi,'-').replace(/^-|-$/g,'').slice(0,60)||('pesma-'+Date.now());
+    await LIB.db.doc('songs/'+id).set({title,artist,asset:up.id,added:Date.now()});
+    LIB.cache.set(up.id,data);
+    LIB.songs=LIB.songs.filter(s=>s.id!==id).concat([{id,title,artist,asset:up.id}]).sort((a,b)=>a.title.localeCompare(b.title));
+    openSrc({kind:'bytes',data},id);renderShelf();toast('Сачувано: '+title+'. Следећи пут је на листи.');
+  }catch(e){console.error(e);openSrc({kind:'bytes',data},null);toast('Песма је отворена, али чување није успело ('+(e&&e.code||'грешка')+').',5000)}
+}
+let delArmed=false;
+$('#delBtn').onclick=async()=>{
+  if(!delArmed){delArmed=true;$('#delBtn').textContent='Сигурно уклонити?';$('#delBtn').classList.add('warn');setTimeout(()=>{delArmed=false;$('#delBtn').textContent='Уклони';$('#delBtn').classList.remove('warn')},4000);return}
+  delArmed=false;$('#delBtn').textContent='Уклони';$('#delBtn').classList.remove('warn');
+  const s=LIB.songs.find(x=>x.id===S.songId);if(!s)return;
+  try{if(!s.mem&&!s.emb){await LIB.db.doc('songs/'+s.id).delete();if(LIB.assets)LIB.assets.delete(s.asset).catch(()=>{})}
+    LIB.songs=LIB.songs.filter(x=>x.id!==s.id);toast('Уклоњено: '+s.title);
+    if(LIB.songs.length)openSong(LIB.songs[0].id);else{openSrc({kind:'tex',data:DEMO},null);renderShelf()}
+  }catch(e){toast('Уклањање није успело.')}
+};
+$('#songSel').onchange=e=>{const v=e.target.value;if(v)openSong(v);else openSrc({kind:'tex',data:DEMO},null)};
+$('#fGp').onchange=e=>{const f=e.target.files[0];if(f)addFile(f);e.target.value=''};
+let dn=0;
+addEventListener('dragenter',e=>{e.preventDefault();dn++;$('#drop').hidden=false});
+addEventListener('dragleave',()=>{if(--dn<=0){dn=0;$('#drop').hidden=true}});
+addEventListener('dragover',e=>e.preventDefault());
+addEventListener('drop',e=>{e.preventDefault();dn=0;$('#drop').hidden=true;const f=e.dataTransfer.files[0];if(f)addFile(f)});
+
+async function initLibrary(){
+  const emb=(window.KT_EMBEDDED||[]).map((x,i)=>({id:'emb-'+i,title:x.title,artist:x.artist||'',asset:'emb-'+i,b64:x.b64,emb:true}));
+  if(!window.claude||!window.claude.use){
+    LIB.standalone=true;$('#saveBtn').hidden=false;
+    LIB.songs=emb.sort((a,b)=>a.title.localeCompare(b.title));
+    const last=store.get('kt-last'),pick=LIB.songs.find(s=>s.id===last)||LIB.songs[0];
+    if(pick)openSong(pick.id);else renderShelf();
+    return;
+  }
+  window.claude.use('downloads').then(d=>{LIB.dl=d;if(d)$('#saveBtn').hidden=false}).catch(()=>{});
+  try{[LIB.db,LIB.assets]=await Promise.all([window.claude.use('db'),window.claude.use('assets')])}catch(e){}
+  if(!LIB.db)return;
+  LIB.db.collection('songs').onSnapshot(snap=>{
+    const mem=LIB.songs.filter(s=>s.mem);
+    LIB.songs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.asset).concat(mem).sort((a,b)=>String(a.title).localeCompare(String(b.title)));
+    if(LIB.first){LIB.first=false;const last=store.get('kt-last');const pick=LIB.songs.find(s=>s.id===last)||LIB.songs[0];if(pick&&!S.songId){openSong(pick.id);return}}
+    renderShelf();$('#delBtn').hidden=!S.songId;
+  },e=>console.warn(e));
+}
+
+// ---------- save as standalone HTML ----------
+async function saveHtml(){
+  const btn=$('#saveBtn');btn.disabled=true;
+  try{
+    toast('Спремам фајл…');
+    const list=[];
+    for(const s of LIB.songs){
+      let b64=s.b64;
+      if(!b64){const c=LIB.cache.get(s.asset);if(c)b64=bytesB64(c);else{const r=await fetch('/_blob/'+s.asset);if(!r.ok)continue;b64=(await r.text()).trim()}}
+      list.push({title:s.title,artist:s.artist||'',b64});
+    }
+    const emb='<script>window.KT_EMBEDDED='+JSON.stringify(list).replace(/</g,'\\u003c')+';<\/script>';
+    const doc='<!doctype html><html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>'+emb+'\n'+PRISTINE+'\n</body></html>';
+    const name='kravos-tab.html';
+    if(LIB.dl){await LIB.dl.save({filename:name,data:new Blob([doc],{type:'text/html'})});toast('Сачувано: '+name+' ('+list.length+' песама).')}
+    else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([doc],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('Сачувано: '+name+' ('+list.length+' песама).')}
+  }catch(e){if(!(e&&e.code==='declined'))toast('Чување није успело'+(e&&e.code?' ('+e.code+')':'')+'.');}
+  btn.disabled=false;
+}
+$('#saveBtn').onclick=saveHtml;
+
+// ---------- transport ----------
+function highlight(sec){const bars=S.score.tracks[S.track].staves[0].bars,lb=bars[sec.end].voices[0].beats;try{api.highlightPlaybackRange(bars[sec.start].voices[0].beats[0],lb[lb.length-1]);api.applyPlaybackRangeFromHighlight()}catch(e){}}
+$('#loopBtn').onclick=()=>{
+  if(S.loop){S.loop=false;S.loopSec=null;$('#loopBtn').classList.remove('on');api.isLooping=false;api.playbackRange=null;try{api.clearPlaybackRangeHighlight()}catch(e){}return}
+  const sec=curSec||S.sections[0];S.loop=true;S.loopSec=sec;highlight(sec);api.isLooping=true;$('#loopBtn').classList.add('on');
+  const lk=api.tickCache&&api.tickCache.masterBars.find(m=>m.masterBar.index===sec.start);if(lk&&api.playerState!==1)api.tickPosition=lk.start;
+  toast('Понавља се: '+sec.label);
+};
+$('#playBtn').onclick=()=>api.playPause();
+$('#stopBtn').onclick=()=>{api.stop();if(S.loop&&api.playbackRange)api.tickPosition=api.playbackRange.startTick};
+$('#speed').oninput=e=>{$('#speedVal').textContent=e.target.value+'%';api.playbackSpeed=+e.target.value/100};
+$$('#bassVol button').forEach(b=>b.onclick=()=>{OPT.bass=+b.dataset.v;$$('#bassVol button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-checked',x===b)});saveOpt();applyOpts()});
+function saveOpt(){store.set('kt-opt',OPT)}
+function loadOpt(){const o=store.get('kt-opt');if(o)Object.assign(OPT,o);
+  $('#optChords').checked=OPT.chords;$('#optRoot').checked=OPT.root;$('#optAll').checked=OPT.all;$('#optHint').checked=OPT.hint;$('#optStd').checked=OPT.std;
+  $('#hint').hidden=!OPT.hint;$$('#bassVol button').forEach(x=>{const on=+x.dataset.v===OPT.bass;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});
+  api.settings.display.staveProfile=OPT.std?AT.StaveProfile.ScoreTab:AT.StaveProfile.Tab;api.updateSettings()}
+$('#optChords').onchange=e=>{OPT.chords=e.target.checked;saveOpt();relabel()};
+$('#optRoot').onchange=e=>{OPT.root=e.target.checked;if(OPT.root){OPT.all=false;$('#optAll').checked=false}saveOpt();relabel()};
+$('#optAll').onchange=e=>{OPT.all=e.target.checked;if(OPT.all){OPT.root=false;$('#optRoot').checked=false}saveOpt();relabel()};
+$('#optHint').onchange=e=>{OPT.hint=e.target.checked;$('#hint').hidden=!OPT.hint;saveOpt()};
+$('#optStd').onchange=e=>{OPT.std=e.target.checked;saveOpt();api.settings.display.staveProfile=OPT.std?AT.StaveProfile.ScoreTab:AT.StaveProfile.Tab;api.updateSettings();api.render()};
+document.addEventListener('click',e=>{const m=$('#more');if(m.open&&!m.contains(e.target))m.open=false});
+addEventListener('keydown',e=>{if(e.target.closest('input,select'))return;if(e.code==='Space'){e.preventDefault();api.playPause()}});
+const reTheme=()=>{colorize(api.settings);api.updateSettings();api.render()};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',reTheme);
+new MutationObserver(reTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+// ---------- demo (original exercise, shown until a song is added) ----------
+const DEMO=`\\title "Вежба R–5–8"
+\\artist "пример"
+\\tempo 112
+.
+\\track "Бас"
+\\staff {tabs}
+\\tuning G2 D2 A1 E1
+\\instrument electricbassfinger
+\\section "Verse"
+:8 0.4 0.4 2.3 2.3 2.2 2.2 2.3 4.3 | 5.3 5.3 7.2 7.2 7.1 7.1 7.2 2.3 | 3.3 3.3 5.2 5.2 5.1 5.1 5.2 6.3 | 0.4 0.4 2.3 2.3 2.2 2.3 1.4 2.4 |
+0.4 0.4 2.3 2.3 2.2 2.2 2.3 4.3 | 5.3 5.3 7.2 7.2 7.1 7.1 7.2 2.3 | 3.3 3.3 5.2 5.2 5.1 5.1 4.3 4.3 | 5.3 5.3 7.2 7.2 :4 0.4 r |
+\\track "Гитара"
+\\staff {tabs}
+\\instrument overdrivenguitar
+(0.6 2.5 2.4).1 | (5.5 7.4 7.3).1 | (3.5 5.4 5.3).1 | (0.6 2.5 2.4).1 | (0.6 2.5 2.4).1 | (5.5 7.4 7.3).1 | (3.5 5.4 5.3).1 | (5.5 7.4 7.3).2 (0.6 2.5 2.4).4 r.4 |
+`;
+loadOpt();
+openSrc({kind:'tex',data:DEMO},null);renderShelf();
+initLibrary();
+})();
+</script>
