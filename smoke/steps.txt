@@ -1,12 +1,19 @@
-shot 01-start
-not found: Glasno
+shot 01-cards
+not found: Paranoid
+shot 01b-card-paranoid
+not found: 2
+shot 01c-card-2
+tapped Tab
+shot 01d-tab
+tapped Glasno
 shot 02-playing
-not found: Detalji
+tapped Detalji
 shot 03-details
-not found: Sve funkcije nota (3, b7, prolazne…)
+tapped Sve funkcije nota (3, b7, prolazne…)
 not found: Sve funkcije nota
 shot 04-all-functions
-not found: Detalji
-not found: Podešavanja
+tapped Detalji
+tapped Podešavanja
 shot 05-settings
+tapped Kartice
 shot 06-landscape
