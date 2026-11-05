@@ -25,7 +25,7 @@ window.KT={
     LIB.songs=(list||[]).slice().sort((a,b)=>songTitle(a).localeCompare(songTitle(b)));
     if(LIB.first&&LIB.songs.length){LIB.first=false;const last=store.get('kt-last'),pick=LIB.songs.find(s=>s.id===last)||LIB.songs[0];openSong(pick.id)}
     renderShelf();updateSettings();
-    if(err)toast(err,5000);
+    if(err&&!document.body.classList.contains('cards'))toast(err,5000);
   },
   onSong(id,b64){
     let data;try{data=b64bytes(b64)}catch(e){toast('Песма није учитана.');return}

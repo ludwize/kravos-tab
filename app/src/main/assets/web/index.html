@@ -76,6 +76,50 @@ footer.transport{border-top:1px solid var(--line);background:var(--bg);padding-b
 .more .menu label{display:flex;gap:9px;align-items:center;font-size:14px;cursor:pointer}
 .more .menu input{accent-color:var(--accent);width:16px;height:16px;flex:none}
 
+body.cards #hint,body.cards #tuneBanner,body.cards #scroll,body.cards footer.transport,body.cards .shelf>:not(.set){display:none!important}
+body.cards #cardsView{display:grid!important}
+.views button{padding:7px 14px}
+#cardsView{flex:1;min-height:0;grid-template-columns:300px minmax(0,1fr);overflow:hidden}
+.clist{overflow:auto;border-right:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:6px}
+.clist .prog{font:500 12px var(--f-mono);color:var(--muted);padding:2px 4px 8px}
+.ci{display:grid;grid-template-columns:30px 1fr auto;gap:2px 10px;align-items:center;text-align:left;border:1px solid transparent;background:none;border-radius:10px;padding:9px 10px;cursor:pointer;width:100%}
+.ci:hover{background:var(--sheet)}
+.ci.on{background:var(--sheet);border-color:var(--line)}
+.ci .n{grid-row:span 2;width:28px;height:28px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font:700 12px var(--f-mono)}
+.ci.on .n{background:var(--accent);color:var(--accent-ink)}
+.ci.done .n{background:var(--ink);color:var(--bg)}
+.ci b{font-weight:600;font-size:14.5px;line-height:1.25}
+.ci small{grid-column:2;color:var(--muted);font-size:12.5px}
+.ci .ck{grid-row:span 2;color:var(--accent);font-weight:700}
+.card{overflow:auto;padding:22px max(16px,env(safe-area-inset-right,0px)) 40px 28px;display:flex;flex-direction:column;gap:18px;max-width:760px}
+.card h2{font:700 24px/1.15 var(--f-display);margin:0;text-wrap:balance}
+.card .by{color:var(--muted);font-size:14px;margin-top:4px}
+.chip{display:inline-block;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:4px 12px;font-weight:600;font-size:13.5px}
+.facts{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px}
+.facts span{color:var(--muted)}
+.facts b{font-weight:600;color:var(--ink)}
+.chords{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.chords dt{color:var(--muted);font-size:13.5px}
+.chords dd{margin:0;font:700 14.5px/1.4 var(--f-mono)}
+.card h3{font:600 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.card p{margin:0;font-size:15.5px;line-height:1.6;max-width:64ch}
+.ex{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ex label{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer;font-size:15px;line-height:1.5}
+.ex input{accent-color:var(--accent);width:18px;height:18px;margin-top:2px}
+.ex label:has(input:checked) span{color:var(--muted);text-decoration:line-through}
+.cnav{display:flex;flex-wrap:wrap;gap:8px}
+.src{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.src a{color:var(--muted)}
+@media (max-width:700px){
+  #cardsView{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+  .clist{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px 12px;gap:6px}
+  .clist .prog{display:none}
+  .ci{grid-template-columns:auto;padding:6px;width:auto}
+  .ci b,.ci small,.ci .ck{display:none}
+  .ci .n{grid-row:auto}
+  .card{padding:16px max(16px,env(safe-area-inset-left,0px)) 32px;gap:16px}
+  .card h2{font-size:21px}
+}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);z-index:20}
 #drop{position:fixed;inset:0;background:color-mix(in srgb,var(--accent) 18%,transparent);border:3px dashed var(--accent);display:grid;place-items:center;font:700 20px var(--f-display);z-index:30;pointer-events:none}
 @media (max-width:700px){
@@ -99,6 +143,7 @@ footer.transport{border-top:1px solid var(--line);background:var(--bg);padding-b
 
 <header data-kt class="top gut">
   <span class="brand">KRAVOS <i>TAB</i></span>
+  <div class="levels views" id="viewSw" role="tablist" aria-label="Prikaz"><button data-v="cards" role="tab">Kartice</button><button data-v="tab" role="tab">Tab</button></div>
   <div class="shelf">
     <select id="songSel" aria-label="Moje pesme"></select>
     <button class="btn" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Sa telefona</button>
@@ -114,6 +159,10 @@ footer.transport{border-top:1px solid var(--line);background:var(--bg);padding-b
     </details>
   </div>
 </header>
+<div data-kt id="cardsView" hidden>
+  <nav class="clist" id="cList" aria-label="Pesme po redu"></nav>
+  <article class="card" id="cCard"></article>
+</div>
 <div class="upd gut" id="updBar" hidden><span id="updText"></span><button class="btn warn" id="updBtn">Instaliraj</button><button class="btn quiet" id="updLater">Kasnije</button></div>
 <div data-kt class="hint gut" id="hint"><b id="hSec">—</b><span class="prog" id="hProg"></span><span class="tip" id="hTip"></span></div>
 <div data-kt class="banner gut" id="tuneBanner" hidden></div>
@@ -156,6 +205,122 @@ const BUILTIN_LESSONS = {
     outro: "Ponavlja uvod i spušta se na E."
   }
 };
+
+// Kartice: osam pesama iz seta, svaka uči jedan pojam iz teorije. Redosled je redosled učenja.
+const CARDS = [
+  {
+    id: "tnt", title: "T.N.T.", artist: "AC/DC", year: "1975",
+    concept: "Koren i puls",
+    facts: [["Tonalitet", "E (između dura i mola)"], ["Tempo", "oko 126 BPM"]],
+    chords: [["Rif i refren", "A – G – E (iv – ♭III – i)"]],
+    theory: "Sve počinje od korena: nota po kojoj se akord zove. Bas svira ravne osminke na korenu i menja notu tačno kad i gitara. G iznad E je mala terca (♭III), zato pesma zvuči „prljavo“ rokerski, iako nema mol akorda u klasičnom smislu.",
+    listen: "Bas i bas-bubanj udaraju zajedno. Pauze u refrenu su deo ritma, tišina mora da bude tačna koliko i nota.",
+    exercises: [
+      "Uz snimak sviraj samo cele note na korenu: E, G, A. Cilj je da čuješ gde se akord menja.",
+      "Isto u ravnim osminkama na 70% tempa. Bez ubrzavanja, svaka osminka jednaka.",
+      "Ceo refren uz snimak, brojeći u sebi „1 i 2 i“. Promena akorda pada tačno na 1."
+    ],
+    sources: [["Hooktheory: T.N.T.", "https://www.hooktheory.com/theorytab/view/ac-dc/tnt"], ["Jon MacLennan: TNT chords", "https://www.jonmaclennan.com/blog/tnt-chords"]]
+  },
+  {
+    id: "paranoid", title: "Paranoid", artist: "Black Sabbath", year: "1970",
+    concept: "Mol pentatonika",
+    facts: [["Tonalitet", "E mol"]],
+    chords: [["Cela pesma", "E5, D5, G5, C5 (pauer akordi)"]],
+    theory: "E mol pentatonika je pet nota: E G A H D. Nema polustepena između njih, zato nijedna ne „smeta“ preko rok akorda. To je prva „kutija“ na vratu koju treba da znaš napamet.",
+    listen: "Geezer i Iommi sviraju rif zajedno, bas oktavu niže. Geezer kaže da baš to daje Sabbath rifovima težinu. Čuje se kao jedan debeo instrument.",
+    exercises: [
+      "Nađi E mol pentatoniku u prvoj poziciji (prazne žice i 2–3. prag) i sviraj je gore-dole.",
+      "Sviraj rif uz snimak i prepoznaj koje note pentatonike koristi.",
+      "Improvizuj samo iz pentatonike preko solo dela. Nijedna nota neće zvučati pogrešno."
+    ],
+    sources: [["Wikipedia: Paranoid", "https://en.wikipedia.org/wiki/Paranoid_(Black_Sabbath_song)"], ["Jon MacLennan: Paranoid chords", "https://www.jonmaclennan.com/blog/paranoid-chords"], ["Guitar World: Geezer Butler", "https://www.guitarworld.com/features/geezer-butlers-10-best-basslines-with-black-sabbath"]]
+  },
+  {
+    id: "aceofspades", title: "Ace of Spades", artist: "Motörhead", year: "1980",
+    concept: "Kvinta i dvozvuk",
+    facts: [["Štim", "pola tona niže (E♭)"], ["Centar", "glavni rif na A"]],
+    chords: [["Glavni rif", "A"], ["Strofe", "menja se ispod glavnog rifa, nađi po uhu"]],
+    theory: "Kvinta (5) je nota sedam polustepena iznad korena. Na basu je uvek na istom mestu: dva praga više na susednoj tanjoj žici. Koren i kvinta zajedno su pauer akord na basu. Lemmy je bas svirao kao gitaru: dvozvuci, prazna žica koja zvoni i melodija na nižoj žici.",
+    listen: "Bas zvuči kao ritam gitara, distorzija i puni akordi. Ne traži pojedinačne note, traži oblik.",
+    exercises: [
+      "Sviraj koren i kvintu zajedno na A, D, G i C. Oblik prstiju je uvek isti.",
+      "Uz snimak prvo samo koren u osminkama, pa pređi na dvozvuk koren i kvinta.",
+      "Nađi po uhu gde se u strofi menja akord i na koji. Bez taba, ovo je vežba za uvo."
+    ],
+    sources: [["TalkingBass: Ace of Spades", "https://www.talkingbass.net/heaviest-bass-riff-of-all-time-ace-of-spades/"], ["Guitar World: Lemmy", "https://guitarworld.com/features/lemmys-5-greatest-basslines-with-motorhead"]]
+  },
+  {
+    id: "wastedyears", title: "Wasted Years", artist: "Iron Maiden", year: "1986",
+    concept: "i – ♭VII – ♭VI",
+    facts: [["Tonalitet", "E mol"], ["Tempo", "oko 154 BPM"]],
+    chords: [["Strofa", "Em – D – C"], ["Refren", "G – C – Am – D – C – Am – Em – D"]],
+    theory: "Em – D – C je najčešći metal pokret u molu: tonika, pa dva koraka dole. Refren kreće od G (paralelni dur), zato zvuči vedrije iako su note iste. Gitare menjaju akord osminku ranije (anticipacija), a bas prati.",
+    listen: "Poslednja osminka pred taktnu crtu često nije koren, to je „guranje“ akorda unapred. Pred kraj refrena bas se hromatski penje ka G.",
+    exercises: [
+      "Samo koreni: E, D, C u strofi, G, C, A, D u refrenu.",
+      "Prilaz odozdo: poslednja osminka pred promenu je polustepen ispod novog korena (D# pred E, H pred C).",
+      "U refrenu drži E preko C i Am. To je terca C-dura i kvinta Am, zajednički ton."
+    ],
+    sources: [["Analiza tvog GP fajla (Kravos Tab)", ""]]
+  },
+  {
+    id: "aintalkin", title: "Ain't Talkin' 'bout Love", artist: "Van Halen", year: "1978",
+    concept: "Isti obrazac, drugi tonalitet",
+    facts: [["Štim", "pola tona niže: hvataš A mol, zvuči G♯ mol"]],
+    chords: [["Rif", "Am – F – G (i – ♭VI – ♭VII)"]],
+    theory: "Ovo su isti akordi kao u Wasted Years (i, ♭VI, ♭VII), samo drugi redosled i drugi tonalitet. Kad naučiš oblik na vratu, nosiš ga u svaki tonalitet: prsti rade isto, samo počinješ sa drugog praga.",
+    listen: "Gitara razlaže akorde, a bas drži koren ispod. Ti si pod.",
+    exercises: [
+      "Sviraj korene A, F, G uz snimak. Proštimuj pola tona niže ili uključi Tune Down na ME-90B.",
+      "Isti oblik prebaci na E (Em – C – D), pa na D (Dm – B – C). Prsti isto, zvuk drugi.",
+      "Uradi isto sa Wasted Years pokretom (i – ♭VII – ♭VI) u A molu: Am – G – F."
+    ],
+    sources: [["Hooktheory: Ain't Talkin' 'bout Love", "https://www.hooktheory.com/theorytab/view/van-halen/aint-talkin-bout-love"], ["MusicRadar: weekend riff", "https://musicradar.com/tuition/guitars/weekend-riff-van-halen-aint-talkin-bout-love-607083"]]
+  },
+  {
+    id: "wholelotta", title: "Whole Lotta Love", artist: "Led Zeppelin", year: "1969",
+    concept: "Bluz: mala terca i mala septima",
+    facts: [["Centar", "E"], ["Tempo", "oko 92 BPM"]],
+    chords: [["Rif", "stoji na E"], ["Refren", "E – D (i – ♭VII)"]],
+    theory: "Bluz živi na dve note: mala terca (G nad E) i mala septima (D nad E). Kad E mol pentatonici iz Paranoid-a dodaš B♭, dobijaš bluz skalu: E G A B♭ H D. B♭ je „blu nota“, prolazi se preko nje, ne stoji se na njoj.",
+    listen: "John Paul Jones svira rif zajedno sa gitarom, oktavu niže. Koreni pesme su u bluzu Willie Dixon-a („You Need Love“).",
+    exercises: [
+      "Sviraj E mol pentatoniku, pa dodaj B♭ između A i H. To je bluz skala.",
+      "Sviraj samo E i D (R i ♭7) u ritmu rifa. Čućeš bluz i bez ostalih nota.",
+      "Improvizuj iz bluz skale preko rifa. Na B♭ samo prođi."
+    ],
+    sources: [["Wikipedia: Whole Lotta Love", "https://en.wikipedia.org/wiki/Whole_Lotta_Love"], ["Hooktheory: Whole Lotta Love", "https://www.hooktheory.com/theorytab/view/led-zeppelin/whole-lotta-love"]]
+  },
+  {
+    id: "aceshigh", title: "Aces High", artist: "Iron Maiden", year: "1984",
+    concept: "Galop i pedal ton",
+    facts: [["Tempo", "oko 140 BPM"]],
+    chords: [["Uvod", "F♯m – D – E"], ["Strofa", "Em – D – Am – G"], ["Refren", "Em – C – D, pa G – E♭ – F"], ["Solo", "Am – F – G"]],
+    theory: "Galop je osmina i dve šesnaestine („ta-tata“), Harris-ov potpis. Pedal ton znači da bas drži istu notu dok se akordi menjaju iznad nje, kao sidro. Pred kraj refrena G – E♭ – F je ♭VI – ♭VII, isti pokret kao u Van Halen-u, ali ovde diže pesmu.",
+    listen: "Galop mora da bude ravan kao mašina. Kad se akordi menjaju, bas menja samo notu, nikad ritam.",
+    exercises: [
+      "Galop na praznoj E žici uz metronom: 80, pa 100, pa 120 BPM.",
+      "Galop preko korena strofe: E, D, A, G.",
+      "Refren u petlji uz snimak (A–B u Kravos Player-u), prvo na 75% tempa."
+    ],
+    sources: [["Chordwiki: Aces High", "https://ja.chordwiki.org/wiki/Aces+High"], ["GuitarTabsExplorer: Aces High", "https://www.guitartabsexplorer.com/iron-maiden-Tabs/aces-high-crd.php"], ["Music I Want: Aces High", "https://www.musiciwant.com/song/aces-high-iron-maiden"]]
+  },
+  {
+    id: "bell", title: "For Whom the Bell Tolls", artist: "Metallica", year: "1984",
+    concept: "Melodijski bas i hromatika",
+    facts: [["Centar", "E (Hooktheory: E dorski)"], ["Tempo", "oko 116–118 BPM"]],
+    chords: [["Uvod", "i – ii (E5 – F♯5)"]],
+    theory: "Hromatika je kretanje po polustepenu, prag po prag. Dorski je mol sa velikom sekstom: u E molu umesto C sviraš C♯, i mol odjednom zvuči manje tamno. Cliff Burton je uvod napisao pre Metallica-e i svira ga kao solo: distorzija, wah i visoki registar.",
+    listen: "U uvodu bas vodi, gitare prate. Cliff je snimio tri bas trake: distorzirani solo, čist bas i harmonike.",
+    exercises: [
+      "Hromatska skala od E do A na jednoj žici, polako, svaki prst jedan prag.",
+      "Sviraj E mol lestvicu, pa zameni C sa C♯. Čuj kako dorski menja boju.",
+      "Uz snimak prvo koreni glavnog rifa. Uvod tek kad prve dve vežbe legnu."
+    ],
+    sources: [["Wikipedia: For Whom the Bell Tolls", "https://en.wikipedia.org/wiki/For_Whom_the_Bell_Tolls_(Metallica_song)"], ["Hooktheory: For Whom the Bell Tolls", "https://hooktheory.com/theorytab/view/metallica/for-whom-the-bell-tolls"], ["Bass Musician Magazine", "https://bassmusicianmagazine.com/2015/10/bass-lines-by-jaime-vazquez-part-xv-metallicas-for-whom-the-bell-tolls/amp/"]]
+  }
+];
 
 </script>
 <script data-kt>
@@ -330,6 +495,40 @@ function openSrc(src,id){
   build();
 }
 
+// ---------- cards (8 songs in learning order) ----------
+const escC=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CV={cur:store.get('kt-card')||CARDS[0].id};
+const exState=id=>store.get('kt-ex:'+id)||[];
+const cardDone=c=>{const e=exState(c.id);return c.exercises.every((_,i)=>e[i])};
+const normT=t=>String(t).toLowerCase().replace(/[’'`.]/g,'').replace(/\s+/g,' ').trim();
+function cardSong(c){const want=normT(c.title);const o=[...document.querySelectorAll('#songSel option')].find(o=>o.value&&normT(o.textContent).includes(want));return o?o.value:null}
+function renderCards(){
+  const done=CARDS.filter(cardDone).length;
+  $('#cList').innerHTML='<div class="prog">'+done+' / '+CARDS.length+' pesama naučeno</div>'+CARDS.map((c,i)=>`<button class="ci ${c.id===CV.cur?'on':''} ${cardDone(c)?'done':''}" data-id="${c.id}" aria-label="${escC(c.title)}"><span class="n">${i+1}</span><b>${escC(c.title)}</b><span class="ck">${cardDone(c)?'✓':''}</span><small>${escC(c.concept)}</small></button>`).join('');
+  const i=Math.max(0,CARDS.findIndex(c=>c.id===CV.cur)),c=CARDS[i],e=exState(c.id),song=cardSong(c);
+  $('#cCard').innerHTML=`<div><span class="chip">${i+1}. ${escC(c.concept)}</span></div>
+  <div><h2>${escC(c.title)}</h2><div class="by">${escC(c.artist)} · ${escC(c.year)}</div></div>
+  <div class="facts">${c.facts.map(f=>`<span>${escC(f[0])}: <b>${escC(f[1])}</b></span>`).join('')}</div>
+  <dl class="chords">${c.chords.map(r=>`<dt>${escC(r[0])}</dt><dd>${escC(r[1])}</dd>`).join('')}</dl>
+  <section><h3>Teorija</h3><p>${escC(c.theory)}</p></section>
+  <section><h3>Šta da čuješ</h3><p>${escC(c.listen)}</p></section>
+  <section><h3>Vežbe uz snimak</h3><ol class="ex">${c.exercises.map((x,k)=>`<li><label><input type="checkbox" data-ex="${k}" ${e[k]?'checked':''}><span>${escC(x)}</span></label></li>`).join('')}</ol></section>
+  <div class="cnav">${song?`<button class="btn" id="cOpen">Otvori tab</button>`:''}${i+1<CARDS.length?`<button class="btn" id="cNext">Sledeća: ${escC(CARDS[i+1].title)} →</button>`:''}</div>
+  <div class="src">Izvori: ${c.sources.map(s=>s[1]?`<a href="${escC(s[1])}" target="_blank" rel="noopener">${escC(s[0])}</a>`:`<span>${escC(s[0])}</span>`).join('')}</div>`;
+  $('#cCard').scrollTop=0;
+  const n=$('#cNext');if(n)n.onclick=()=>{CV.cur=CARDS[i+1].id;store.set('kt-card',CV.cur);renderCards()};
+  const o=$('#cOpen');if(o)o.onclick=()=>{setView('tab');openSong(song)};
+}
+$('#cList').onclick=e=>{const b=e.target.closest('.ci');if(!b)return;CV.cur=b.dataset.id;store.set('kt-card',CV.cur);renderCards()};
+$('#cCard').onchange=e=>{const x=e.target.closest('[data-ex]');if(!x)return;const s=exState(CV.cur);s[+x.dataset.ex]=x.checked;store.set('kt-ex:'+CV.cur,s);
+  const keep=$('#cCard').scrollTop;renderCards();$('#cCard').scrollTop=keep};
+function setView(v){
+  document.body.classList.toggle('cards',v==='cards');$('#cardsView').hidden=v!=='cards';store.set('kt-view',v);
+  $$('#viewSw button').forEach(b=>{const on=b.dataset.v===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  if(v==='cards')renderCards();else{api.stop();setTimeout(()=>api.render(),0)}
+}
+$$('#viewSw button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+
 // ---------- library (Android: Google Drive folder "Kravos Tab" + files on the phone) ----------
 const N=window.KravosNative;
 const LIB={songs:[],cache:new Map(),first:true,want:null,state:{}};
@@ -357,7 +556,7 @@ window.KT={
     LIB.songs=(list||[]).slice().sort((a,b)=>songTitle(a).localeCompare(songTitle(b)));
     if(LIB.first&&LIB.songs.length){LIB.first=false;const last=store.get('kt-last'),pick=LIB.songs.find(s=>s.id===last)||LIB.songs[0];openSong(pick.id)}
     renderShelf();updateSettings();
-    if(err)toast(err,5000);
+    if(err&&!document.body.classList.contains('cards'))toast(err,5000);
   },
   onSong(id,b64){
     let data;try{data=b64bytes(b64)}catch(e){toast('Pesma nije učitana.');return}
@@ -446,6 +645,7 @@ const DEMO=`\\title "Vežba R–5–8"
 `;
 loadOpt();
 openSrc({kind:'tex',data:DEMO},null);renderShelf();
+setView(store.get('kt-view')||'cards');
 initLibrary();
 })();
 </script>

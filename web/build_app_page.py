@@ -10,7 +10,7 @@ SITE = sys.argv[2] if len(sys.argv) > 2 and sys.argv[1] == '--site' else None
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 src = (ROOT / 'web/page.src.html').read_text()
 adapter = (ROOT / 'web/app_adapter.js').read_text()
-lessons = (ROOT / 'web/lessons.js').read_text()
+lessons = (ROOT / 'web/lessons.js').read_text() + '\n' + (ROOT / 'web/cards.js').read_text()
 
 def rep(a, b):
     global src

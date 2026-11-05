@@ -32,7 +32,10 @@ PY
   sleep 3
 }
 
-shot 01-start
+shot 01-cards
+tap_text "Paranoid"; sleep 2; shot 01b-card-paranoid
+tap_text "2"; sleep 2; shot 01c-card-2
+tap_text "Tab"; sleep 5; shot 01d-tab
 tap_text "Glasno"; adb shell input keyevent KEYCODE_SPACE; sleep 6; shot 02-playing
 adb shell input keyevent KEYCODE_SPACE; sleep 1
 tap_text "Detalji"; sleep 2; shot 03-details
@@ -41,6 +44,7 @@ tap_text "Detalji"; sleep 1
 tap_text "Podešavanja"; sleep 2; shot 05-settings
 adb shell input keyevent KEYCODE_BACK; sleep 1
 adb shell am start -n $PKG/.MainActivity >/dev/null 2>&1; sleep 2
+tap_text "Kartice"; sleep 2
 adb shell settings put system user_rotation 1; adb shell settings put system accelerometer_rotation 0; sleep 6; shot 06-landscape
 
 PID=$(adb shell pidof $PKG | tr -d '\r')
